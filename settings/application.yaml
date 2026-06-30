@@ -15,5 +15,5 @@ extraction_rules:
     pdf_directory: "pdf_files"
     label_directory: "label_images"
 file_storage:
-  base_path: "/mnt/data"  # Значение по умолчанию, переопределяется в профилях
+  base_path: ".home/ubuntu/Kafka/test"  # Значение по умолчанию, переопределяется в профилях
   base_output_dir: "./data/output" # Базовая директория для сохранения всех результатов
