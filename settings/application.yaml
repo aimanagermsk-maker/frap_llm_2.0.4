@@ -3,7 +3,17 @@ logging:
   uvicorn: INFO
   uvicorn_access: INFO
   uvicorn_error: INFO
-
+  # Настройки для обработки XML и извлечения данных
+extraction_rules:
+  tags_to_extract:
+    - "ns:FSRAR_ID"
+    - "rpp:DocNumber"
+    - "rpp:FullName"
+    # Добавьте сюда все теги, которые нужно извлекать
+  output:
+    json_file_name: "extracted_data.json"
+    pdf_directory: "pdf_files"
+    label_directory: "label_images"
 file_storage:
   base_path: "/mnt/data"  # Значение по умолчанию, переопределяется в профилях
-
+  base_output_dir: "./data/output" # Базовая директория для сохранения всех результатов
