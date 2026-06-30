@@ -1,0 +1,27 @@
+# settings/application-sandbox.yaml
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "test_db"
+  user: "test_user"
+  password: "test_password"
+  table_name: "Test_table"
+
+kafka:
+  bootstrap_servers: "gitlab-ci.ru:9092"
+  consumer_group_id: "frap-llm-helper-group"
+  input_topic: "frap-llm-helper-in"
+  output_topic: "frap-llm-helper-out"
+
+file_storage:
+  output_folder: "/app/data/output"
+  file_prefix: "result_"
+  cleanup_after_send: false
+
+logging:
+  enabled: true
+  table_name: "service_logs"
+  batch_size: 10
+  flush_interval_seconds: 5
+  async_mode: true
+  log_levels: ["ERROR", "WARNING", "INFO", "DEBUG"]
