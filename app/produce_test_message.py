@@ -26,7 +26,7 @@ TEST_MESSAGE = {
     "id": "3",
     "type": "frapclaims",
     "date": "2024-10-17",
-    "uri": "a005e224-f0a5-4092-82c6-002adc0f4d95"
+    "uri": "010052079762-18fa25b3-4c15-42a0-ab2e-4b468ec26b2e"
 }
 
 async def produce_message():
