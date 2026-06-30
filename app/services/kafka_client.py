@@ -1,59 +1,58 @@
 import json
 import logging
-from typing import Dict, Any
-
-from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
-
-from app.services.processor import Processor
-from app.config.app_config import get_config
+from typing import Any, Optional
+from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 
 logger = logging.getLogger(__name__)
 
 class KafkaClient:
-    def __init__(self, config: Dict[str, Any]):
-        self.config = config
-        self.processor = Processor(config)
-        self.consumer = None
-        self.producer = None
-        # ... остальной код инициализации ...
-
-    async def start_consuming(self):
-        """Запускает цикл потребления сообщений."""
-        # ... (код получения consumer и producer) ...
-
-        try:
-            async for msg in self.consumer:
-                logger.info(f"Received message from Kafka: {msg.topic}, offset: {msg.offset}")
-                try:
-                    # 1. Декодируем сообщение
-                    raw_data = json.loads(msg.value.decode('utf-8'))
-                    logger.debug(f"Raw message data: {raw_data}")
-
-                    # 2. Обрабатываем через Processor
-                    result = await self.processor.process_message(raw_data)
-
-                    # 3. Отправляем результат
-                    await self._send_result(result.dict(), msg.key)
-                    logger.info(f"Message processed and sent. Original id: {raw_data.get('id')}")
-
-                except json.JSONDecodeError as e:
-                    logger.error(f"Failed to decode JSON from message: {e}", exc_info=True)
-                    # Отправляем ошибку в out-топик
-                    await self._send_error_result(f"Invalid JSON: {str(e)}", msg.key)
-                except Exception as e:
-                    logger.error(f"Unexpected error processing message: {e}", exc_info=True)
-                    await self._send_error_result(f"Processing error: {str(e)}", msg.key)
-
-        except Exception as e:
-            logger.critical(f"Consumer loop crashed: {e}", exc_info=True)
-            # Здесь можно реализовать перезапуск consumer
-
-    async def _send_result(self, result_data: Dict[str, Any], key: bytes = None):
-        """Отправляет результат в out-топик."""
-        # ... (код отправки) ...
-        pass
-
-    async def _send_error_result(self, error_message: str, key: bytes = None):
-        """Отправляет сообщение об ошибке в out-топик."""
-        # ... (код отправки) ...
-        pass
+    def __init__(self, bootstrap_servers: str, group_id: Optional[str] = None):
+        self.bootstrap_servers = bootstrap_servers
+        self.group_id = group_id
+        self.producer: Optional[AIOKafkaProducer] = None
+        self.consumer: Optional[AIOKafkaConsumer] = None
+        
+    async def start(self):
+        """Запускает продюсера и консьюмера"""
+        self.producer = AIOKafkaProducer(
+            bootstrap_servers=self.bootstrap_servers,
+            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+        )
+        await self.producer.start()
+        logger.info("Kafka producer started")
+        
+        if self.group_id:
+            self.consumer = AIOKafkaConsumer(
+                "frap-llm-helper-in",
+                bootstrap_servers=self.bootstrap_servers,
+                group_id=self.group_id,
+                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+                auto_offset_reset='earliest',
+                enable_auto_commit=True
+            )
+            await self.consumer.start()
+            logger.info("Kafka consumer started")
+    
+    async def send_message(self, topic: str, value: dict, key: Optional[str] = None):
+        """Отправляет сообщение в Kafka"""
+        if not self.producer:
+            raise RuntimeError("Kafka producer not started")
+        await self.producer.send(topic, value=value, key=key.encode('utf-8') if key else None)
+        logger.info(f"Message sent to topic {topic}")
+    
+    async def consume_messages(self):
+        """Потребляет сообщения из топика"""
+        if not self.consumer:
+            raise RuntimeError("Kafka consumer not started")
+        
+        async for msg in self.consumer:
+            logger.info(f"Received message: {msg.value}")
+            yield msg.value
+    
+    async def stop(self):
+        """Останавливает клиенты"""
+        if self.producer:
+            await self.producer.stop()
+        if self.consumer:
+            await self.consumer.stop()
+        logger.info("Kafka clients stopped")
