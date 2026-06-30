@@ -93,10 +93,6 @@ class AppConfig(BaseModel):
     file_storage: FileStorageConfig
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
-# app/models/config_models.py
-from pydantic import BaseModel
-from typing import List, Optional
-
 class ExtractionOutputConfig(BaseModel):
     json_file_name: str = "extracted_data.json"
     pdf_directory: str = "pdf_files"
