@@ -28,9 +28,11 @@ config = get_config()
 async def lifespan(app: FastAPI):
     """Управление жизненным циклом приложения"""
     global kafka_client, db_client, logging_service
-    
+
     # Настройка логирования
     setup_logging()
+    logger = logging.getLogger(__name__)
+    logger.info("Application starting...")
     setup_logging_with_db()
     
     # Логируем активную конфигурацию
