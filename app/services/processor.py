@@ -2,6 +2,7 @@
 import os
 import json
 import logging
+from app.services.xml_extractor import XMLDataExtractor
 from typing import Dict, Any
 from datetime import date
 from pathlib import Path
@@ -16,6 +17,44 @@ from app.models.response_models import (
 from app.config.app_config import get_config # Предположим, функция получения конфига
 
 logger = logging.getLogger(__name__)
+
+class DataProcessor:
+    """Основной класс для обработки входящих данных."""
+
+    def __init__(self, config: Dict[str, Any]):
+        """
+        Инициализация процессора.
+
+        Args:
+            config: Глобальная конфигурация приложения.
+        """
+        self.config = config
+        self.xml_extractor = XMLDataExtractor(config)
+        logger.info("DataProcessor инициализирован.")
+
+    async def process_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Обрабатывает входящее сообщение (например, из Kafka).
+
+        Args:
+            message: Словарь с данными сообщения. Ожидается, что в нем есть ключ 'xml_content'.
+
+        Returns:
+            Словарь с результатом обработки.
+        """
+        xml_content = message.get('xml_content')
+        if not xml_content:
+            logger.warning("Сообщение не содержит 'xml_content'.")
+            return {"error": "No XML content provided"}
+
+        logger.info("Начата обработка XML сообщения.")
+        result = self.xml_extractor.process_xml(xml_content)
+
+        # Здесь может быть дополнительная логика, например, сохранение в БД
+        # await self.db_client.save_extraction_result(result)
+
+        logger.info("Обработка сообщения завершена.")
+        return result
 
 class Processor:
     def __init__(self, config: Dict[str, Any]):
