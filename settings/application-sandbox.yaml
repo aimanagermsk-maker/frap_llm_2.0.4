@@ -45,5 +45,6 @@ logging:
   async_mode: true
   log_levels: ["ERROR", "WARNING", "INFO", "DEBUG"]
 
-  file_storage:
+file_storage:
   base_path: "./test_data"  # Локальный путь для тестов
+  base_output_dir: "/tmp/frap_output" # Пример для песочницы
