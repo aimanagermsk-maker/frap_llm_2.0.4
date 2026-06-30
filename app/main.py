@@ -15,6 +15,8 @@ from app.services.processor import process_message
 from app.services.logging_service import LoggingService, log_service
 from app.utils.logging_handler import setup_logging_with_db
 from app.utils.logging_config import setup_logging
+from app.services.processor import DataProcessor
+from app.config.app_config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +103,7 @@ async def lifespan(app: FastAPI):
             await db_client.disconnect()
         
         logger.info("Ресурсы освобождены")
+    processor = DataProcessor(config)
 
 app = FastAPI(
     title="FRAP LLM Helper",
