@@ -25,3 +25,6 @@ logging:
   flush_interval_seconds: 5
   async_mode: true
   log_levels: ["ERROR", "WARNING", "INFO", "DEBUG"]
+
+  file_storage:
+  base_path: "./test_data"  # Локальный путь для тестов
